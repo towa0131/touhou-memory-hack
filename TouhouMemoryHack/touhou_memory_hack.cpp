@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <vector>
 #include <windows.h>
+#include "memorystream.h"
 
 #define NOP 0x90
 
@@ -11,7 +12,7 @@ int main(int argc, char** argv) {
     bool inf_life = false;
     bool inf_bomb = false;
 
-    int64_t addr[2] = {
+    uint64_t addr[2] = {
         0x00428D6B,
         0x00428961
     };
@@ -29,11 +30,12 @@ int main(int argc, char** argv) {
             cout << "0 : 残機無限（" << (inf_life ? "有効" : "無効") << "）" << endl;
             cout << "1 : ボム無限（" << (inf_bomb ? "有効" : "無効") << "）" << endl;
             cout << "9 : 終了" << endl;
+            cout << ">> ";
             cin >> option;
 
             if (option == 9) return 0;
             if (!(0 <= option && option <= 1)) {
-                cout << "値が不正です。";
+                cout << "値が不正です。" << endl;
             }
         } while (!(0 <= option && option <= 1));
 
@@ -53,7 +55,6 @@ int main(int argc, char** argv) {
         }
 
         vector<uint8_t> vec;
-        DWORD oldProtect;
 
         switch (option) {
         case 0:
@@ -74,20 +75,15 @@ int main(int argc, char** argv) {
             break;
         }
 
-        uint8_t* data = vec.data();
-
-        VirtualProtectEx(hProc, (LPVOID)addr[option], vec.size(), PAGE_EXECUTE_READWRITE, &oldProtect);
-
-        if (WriteProcessMemory(hProc, (LPVOID)addr[option], (LPVOID)data, vec.size(), NULL)) {
+        MemoryStream stream(hProc, addr[option]);
+        if (stream.write(vec)) {
             cout << "メモリの書き込みに成功しました。" << endl;
         }
         else {
             cout << "メモリの書き込みに失敗しました。" << endl;
         }
 
-        VirtualProtectEx(hProc, (LPVOID)addr[option], vec.size(), oldProtect, nullptr);
-
-        CloseHandle(hProc);
+        stream.close();
     }
 
     return 0;
