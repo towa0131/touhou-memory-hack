@@ -13,8 +13,8 @@ int main(int argc, char** argv) {
     bool inf_bomb = false;
 
     uint64_t addr[2] = {
-        0x00428D6B,
-        0x00428961
+        0x00428DEB,
+        0x004289E1
     };
 
     HWND hWnd = FindWindowA(0, "東方紅魔郷　～ the Embodiment of Scarlet Devil");
